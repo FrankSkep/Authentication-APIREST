@@ -1,16 +1,19 @@
 package com.fran.jwt.auth.exception;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
-@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ErrorResponse {
-    private int status;
     private String message;
+    private List<String> details;
 
-    public ErrorResponse(int status, String message) {
-        this.status = status;
+    public ErrorResponse(String message) {
         this.message = message;
     }
 }

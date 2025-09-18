@@ -10,61 +10,67 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestControllerAdvice
 public class AuthExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<String> handleAuthenticationException(AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: " + ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+        ErrorResponse error = new ErrorResponse("Access Denied: " + ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<String> handleInvalidTokenException(InvalidTokenException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleInvalidTokenException(InvalidTokenException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(InvalidUserRegistrationException.class)
-    public ResponseEntity<String> handleInvalidCredentialsException(InvalidUserRegistrationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidUserRegistrationException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        List<String> details = new ArrayList<>();
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            errors.put(error.getField(), error.getDefaultMessage());
+            details.add(error.getField() + ": " + error.getDefaultMessage());
         }
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        ErrorResponse errorResponse = new ErrorResponse("Validation failed", details);
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
     @ExceptionHandler(IncorrectPasswordException.class)
-    public ResponseEntity<String> handleIncorrectPasswordException(IncorrectPasswordException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleIncorrectPasswordException(IncorrectPasswordException ex) {
+        ErrorResponse error = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        ErrorResponse error = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUsernameNotFound(UsernameNotFoundException ex) {
-        ErrorResponse error = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        ErrorResponse error = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<ErrorResponse> handleJwtTokenExpired(ExpiredJwtException ex) {
-        ErrorResponse error = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        ErrorResponse error = new ErrorResponse("Token has expired");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 }
